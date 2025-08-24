@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Parent Login - School Portal</title>
+<style>
+  body { font-family: Arial, sans-serif; background:#f0f4f8; }
+  .container { max-width:400px; margin:100px auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.1);}
+  h2 { text-align:center; margin-bottom:20px; }
+  label { display:block; margin-top:15px; font-weight:bold; }
+  input { width:100%; padding:10px; margin-top:5px; border-radius:6px; border:1px solid #ccc; }
+  button { margin-top:20px; width:100%; padding:12px; background:#3498db; color:#fff; font-size:16px; border:none; border-radius:6px; cursor:pointer; }
+  button:hover { background:#2874b6; }
+  .error { color:#cc0000; margin-top:10px; text-align:center; }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h2>Parent Login</h2>
+    <form id="loginForm">
+      <label for="admissionNumber">Admission Number</label>
+      <input type="text" id="admissionNumber" name="admissionNumber" required />
+      <label for="dob">Date of Birth</label>
+      <input type="date" id="dob" name="dob" required />
+      <button type="submit">Login</button>
+    </form>
+    <div id="errorMsg" class="error" role="alert"></div>
+  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyClydUD7rDxZlNq8WdkoEOnfOmB3CPCTbk",
+      authDomain: "fees-management-5edc0.firebaseapp.com",
+      databaseURL: "https://fees-management-5edc0-default-rtdb.firebaseio.com",
+      projectId: "fees-management-5edc0",
+      storageBucket: "fees-management-5edc0.appspot.com",
+      messagingSenderId: "1086040325830",
+      appId: "1:1086040325830:web:976be3e78dbbc9550921c7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const loginForm = document.getElementById('loginForm');
+    const errorMsg = document.getElementById('errorMsg');
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorMsg.textContent = '';
+      const admNo = document.getElementById('admissionNumber').value.trim();
+      const dobInput = document.getElementById('dob').value;
+      if (!admNo || !dobInput) {
+        errorMsg.textContent = 'Please fill out both fields.';
+        return;
+      }
+      try {
+        const snapshot = await get(ref(db, 'students/' + admNo));
+        if (!snapshot.exists()) {
+          errorMsg.textContent = 'Invalid Admission Number or DOB.';
+          return;
+        }
+        const student = snapshot.val();
+        if (student.dob !== dobInput) {
+          errorMsg.textContent = 'Invalid Admission Number or DOB.';
+          return;
+        }
+        // Valid login: redirect to Parent Dashboard
+        window.location.href = `parent-dashboard.html?admissionNumber=${encodeURIComponent(admNo)}`;
+      } catch (err) {
+        errorMsg.textContent = 'Error verifying credentials.';
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>
